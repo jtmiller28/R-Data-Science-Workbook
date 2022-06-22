@@ -143,4 +143,79 @@ ggplot(data=mpg)+
 Basically anything over 5 recieves a false value to our logical argument. Very cool!
 
 
+### Facets
+For categorical variables, it can be particulary helpful to split up your plots via *facets* which is a fancy way of saying subplots. 
+
+To facet by a single variable we can use facet_wrap(). The argument that is passed should be a *formula*, which is the name of a data structure in R. This is structured as ~variable_name, remember that this should be a _discrete_ variable not _continuous_. 
+
+```{r}
+ggplot(data=mpg)+
+geom_point(mapping = aes(x=displ, y=hwy))+
+facet_wrap(~class, nrow=2) # Here nrow denotes the number of rows in the display of our graphs. 
+```
+To facet by a combination of variables, we can use facet_grid(). The argument is once again a *formula*, this time we seperate the variable names by the *~*. The stucture will be like this: variable_name ~ variable_name
+```{r}
+ggplot(data=mpg)+
+  geom_point(mapping=aes(x=displ, y=hwy))+
+  facet_grid(drv ~ cyl)
+```
+```{r}
+ggplot(data=mpg)+
+  geom_point(mapping=aes(x=displ, y=hwy))+
+  facet_grid(. ~ cyl)
+```
+*.*, Allows you to not use rows/columns in your facet.  
+
+#### Exercises
+1. What happens f you facet on a _continuous variable_? 
+```{r}
+glimpse(mpg)
+# Lets use cty
+
+ggplot(data=mpg)+
+  geom_point(mapping=aes(x=displ, y=hwy))+
+  facet_wrap(~cty)
+```
+The result is horrendous, since its splitting up each integer into its own graph. 
+
+3. What plot does the follwing code make? What does . do?
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping=aes(x=displ, y=hwy)) + 
+  facet_grid( drv ~ .)
+
+ggplot(data=mpg) +
+  geom_point(mapping=aes(x=displ, y=hwy)) + 
+  facet_grid(. ~ cyl)
+```
+Allows us to facet not by dimensions. Kinda weird
+
+4. Take the first faceted plot in this sxn
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x=displ, y=hwy)) + 
+  facet_wrap(~class, nrow=2)
+```
+What are the advantages of using faceting instead of the color aesthetic? What are the disadvantages? How might the balance change if you had a larger dataset?
+_Advantages_
+* Easier to pick out trends for particular categories
+* Less cluttering, less room for the reader to misinterpret the data
+_Disadvantages_ 
+* Its a lot to look at, can be a bit overwhelming
+* Can be advantageous or disadvantageous depending on how you use it with a larger dataset, if there is more categories then thats more graphs and harder to interpret, however if there is ALOT of data, than trends can be masked when all of them are plotted together. 
+
+#### Customizing Facet layout
+```{r}
+?facet_wrap
+```
+*nrow* controls the number of rows for how the facets are displayed. 
+*ncol* ""
+Other options: 
+*scales*: Allows scalling of the graphs
+*shrink*: Fit to statistics 
+*labeller*: Allows you to label the individual faceted outputs. 
+*as.table*: Orders facets by highest to lowest value
+*switch*: Change where the labels are positioned to bottom and left, also see *strip.position* for further label positioning options
+*drop*: Drop the factor levels
+
 
