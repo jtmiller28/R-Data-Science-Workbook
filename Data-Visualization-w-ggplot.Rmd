@@ -9,3 +9,138 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+### Load in libraries
+```{r}
+library(tidyverse)
+```
+### Data visualization 
+#### Do larger or smaller car engines use more fuel?
+```{r}
+# Look at the EPA's data set for cars
+glimpse(mpg)
+
+# Note that 'displ' is the car's engine size in liters
+# Note that 'hwy' is the miles per gallon a car gets on the highway.
+
+# So lets plot the engine size against the mpg the cars get on the highway in order to understand the relationship between size of engine and fuel consumption.
+
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy))
+
+```
+#### The results of this figure are quite obvious, there is a negative trend that increasing the size of your engine decreases the efficiency in mpg on the highway. 
+
+### A simplistic template for using ggplot functions
+ggplot(data = <Data>) +
+  <GEOM_FXN>(mapping = aes(<MAPPING>))
+  
+#### Book Excersises 
+1. Run ggplot(data=mpg). What do we see?
+```{r}
+ggplot(data=mpg)
+# A whole lotta nothing! 
+```
+2. How many rows are in mtcars? How many columns?
+```{r}
+nrow(mtcars) # 32 rows 
+ncol(mtcars) # 11 columns
+
+# Any fancier way of doing this?
+
+dim(mtcars) # First output is number of rows, second is number of columns
+```
+3. What does the drv variable describe? 
+```{r}
+?mpg # The type of drive train, where f = front-wheel drive, r = rear wheel drive, 4 = four-wheel drive
+```
+
+4. Make a scatterplot of hwy vs cyl
+```{r}
+ggplot(data=mpg)+
+  geom_point(mapping = aes(x = hwy, y = cyl))
+```
+##### The trend is a bit odder, but basically the lower number of cylinders the higher mpg on the highway. 
+
+5. What happens if you make a scatterplot of class vs drv?
+Why is this plot not useful?
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x=class, y=drv))
+```
+#### This plot isnt really the best way of summarizing this type of data since its two categorical variables being compared. 
+
+### Aesthetic Mappings
+The aesthetic argument, we can provide an argument to describe the "level" of our data. Using this, we can edit the points size, shape, and color based upon some other property of the date (usually a categorical variable associated with each point). 
+
+For example, we can use the color = class argument inside the aesthetics to denote the type of car each point represents
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x=displ, y=hwy, color=class))
+# Note that using colour instead of color will do the same thing
+
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x=displ, y=hwy, colour=class))
+```
+#### Notice that the outliers (redish orange) are 2seaters, which explains why they don't follow the trend of smaller engines being more efficient in gas (since the car itself is smaller to make up for it)
+
+Note that ggplot autoassigns a unique level of the aesthetics to each unique level (in this case a unique color for every unique class in our dataset). This is known as *scaling*. Ggplot will also autopopulate a legend explaining the levels. 
+
+### Altering other aesthetics 
+#### We can also alter the points based upon the class by size
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x=displ, y=hwy, size=class))
+```
+Here we recieve the warning that using size for the class argument on a discrete variable is not advised. This because its a non continuous (e.g. 1-100) variable that really doesnt help reveal anything by different sizes of the dots. 
+
+#### Alpha
+We can also control transparency of the dots by using the *alpha* argument within aes
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x=displ, y=hwy, alpha=class))
+```
+#### Lets change the shapes of the points according to the class type
+```{r}
+ggplot(data=mpg)+
+  geom_point(mapping = aes(x=displ, y=hwy, shape=class))
+```
+Notice that there aren't enough default shapes in R to show the SUVs. GGplot will default to only plotting 6 types of shapes, and will leaves those without a shape go unplotted.
+
+
+### You can also customize aes outputs by overriding certain features. 
+
+#### Lets change the color of *all* of our points
+```{r}
+ggplot(data=mpg)+
+  geom_point(mapping = aes(x=displ, y=hwy), color = "blue")
+```
+#### What happens if you map the same variable to multiple aesthetics? 
+```{r}
+ggplot(data=mpg)+
+  geom_point(mapping = aes(x=displ, y=hwy, color = displ))
+# Well thats kinda cool! Not really that informative, but it can make pretty graphs if we are so inclined to. 
+```
+What does the stroke aesthetic do? What shapes does it work with?
+```{r}
+?geom_point
+
+### It seems that the stroke aes allows for controlling the thickness of the border on the shapes we create. Lets give it a try
+
+ggplot(data=mpg)+
+  geom_point(mapping=aes(x=displ, y=hwy, shape=class), stroke=3)
+
+ggplot(data=mpg)+
+  geom_point(mapping=aes(x=displ, y=hwy, shape=class), stroke=1)
+
+ggplot(data=mpg)+
+  geom_point(mapping=aes(x=displ, y=hwy, shape=class), stroke=10)
+```
+What happens if you map an aes to something other than a variable name, like aes(color = displ< 5)
+```{r}
+ggplot(data=mpg)+
+  geom_point(mapping=aes(x=displ, y=hwy, color=displ<5))
+```
+Basically anything over 5 recieves a false value to our logical argument. Very cool!
+
+
+
