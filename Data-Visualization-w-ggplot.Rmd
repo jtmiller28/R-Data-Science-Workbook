@@ -219,3 +219,178 @@ Other options:
 *drop*: Drop the factor levels
 
 
+### Geometric Objects
+A *geom* is the geometric object that a plot uses to represent data. 
+
+```{r}
+ggplot(data=mpg)+
+  geom_point(mapping=aes(x=displ, y=hwy))
+
+ggplot(data=mpg) +
+  geom_smooth(mapping=aes(x=displ, y=hwy))
+```
+Not every aes works with every geom. For instance, with geom_smooth you can't customize the 'shape' of the line
+```{r}
+ggplot(data=mpg) +
+  geom_smooth(mapping=aes(x=displ, y=hwy, linetype = drv, shape = drv)) # Notice that shape here is ignored by ggplot
+```
+Lets make this a bit easier to read. 
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping=aes(x=displ, y=hwy, color = drv)) +
+  geom_smooth(mapping=aes(x=displ, y=hwy, linetype = drv, color = drv, fill = drv)) +
+  theme_bw()
+```
+Further ways to visualize this data
+```{r}
+ggplot(data=mpg) +
+  geom_smooth(mapping = aes(x=displ, y=hwy))
+
+ggplot(data=mpg) +
+  geom_smooth(mapping = aes(x=displ, y=hwy, group = drv))
+
+ggplot(data=mpg) + 
+  geom_smooth(
+    mapping = aes(x=displ, y=hwy, color=drv),
+    show.legend = FALSE
+  )
+```
+As illustrated before, we can add multiple geom arguments to one ggplot
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x=displ, y=hwy)) +
+  geom_smooth(mapping = aes(x=displ, y=hwy))
+```
+This can cause problems however! Since we have _multiple geoms_ in our ggplot, we can have issues when trying to change components of the geoms. An alternative solution to this is to wrap the our mapping and aes inside the main ggplot() arguments. 
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
+  geom_point() +
+  geom_smooth()
+```
+Local mappings will now be treated as a layer, This makes it possible for us to display different aes in different layers. 
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
+  geom_point(mapping = aes(color = class)) +
+  geom_smooth()
+```
+So we can customize each layer!
+
+Here, we're going to only use the subcompact car data for geom_smooth and remove the standard error shaded region.
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
+  geom_point(mapping = aes(color = class)) +
+  geom_smooth(
+    data = filter(mpg, class == "subcompact"),
+    se = FALSE
+  )
+```
+Exercises
+SKIP to 6, recreate the graphs from the book. 
+```{r}
+ggplot(data=mpg, mapping = aes(x=displ, y=hwy)) +
+  geom_point(stroke = 2) + 
+  geom_smooth(se = FALSE)
+
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x=displ, y=hwy, group = drv), stroke = 2) + 
+  geom_smooth(mapping = aes(x=displ, y=hwy, group = drv), se = FALSE)
+
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x=displ, y=hwy, group = drv, color = drv), stroke = 2) + 
+  geom_smooth(mapping = aes(x=displ, y=hwy, group = drv), se = FALSE)
+
+ggplot(data=mpg, mapping = aes(x=displ, y=hwy)) +
+  geom_point(stroke = 2, mapping = aes(color = drv)) + 
+  geom_smooth(se = FALSE, span = 0.7)
+
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x=displ, y=hwy, group = drv, color = drv), stroke = 2) + 
+  geom_smooth(mapping = aes(x=displ, y=hwy, group = drv, linetype = drv), se = FALSE)
+
+ggplot(data=mpg, mapping = aes(x=displ, y=hwy)) +
+  geom_point(mapping = aes(x=displ, y=hwy, color = drv),stroke = 2)
+
+```
+### Statistical Transformations
+
+Here, lets look at some basic bar plots using geom_bar
+```{r}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut))
+```
+The x-axis displays the cut of the diamond while the y-axis displays how many diamonds were cut that way. Notice however that count isn't part of the diamond dataset
+```{r}
+glimpse(diamonds)
+```
+Instead, geom_bar is taking the measure of how many diamonds are in each level of cut in the column cut. This is a particular attribute of the geom_bar, this doesn't occur if you were to use a geom that requires both an x & y input (e.g. geom_point)
+
+Overall take aways: 
+
+1. Bar charts, histograms, and frequency polygons bin your data and then plot those bin counts based upon the measured number of each bin.
+
+2. Smoothers will fit a model to the data and then plot predictions based upon this model. 
+
+3. Boxplots are a robust summary of distributions 
+
+The default stat for geom_bar is stat_count() which counts up the number in each bin. Therefore, we can use these interchangably to create the same graph
+```{r}
+ggplot(data = diamonds) +
+  stat_count(mapping = aes(x = cut))
+
+# Notice also that we can find the default stat looking at geom_bar's help page. 
+
+?geom_bar
+```
+
+Overriding the stat is usually not necessary, however *if* we wanted to for some reason we can manually do it.
+```{r}
+demo <- tribble(
+  ~a,     ~b,
+  "bar_1", 20, 
+  "bar_2", 30, 
+  "bar_3", 40
+)
+
+ggplot(data = demo) +
+  geom_bar(
+    mapping = aes(x=a, y=b), stat = "identity"
+  )
+```
+Here, we're manually assigning the stat to be _identity_, a preassigned value in our dataset. This is not great, since we're basing our values off a preassignment rather than raw data. 
+
+Lets look at a cooler application, we can override the mapping to look at the bar chart in terms of proportions.
+```{r}
+ggplot(data=diamonds) + 
+  geom_bar(
+    mapping = aes(x = cut, y = ..prop.., group = 1)
+  )
+```
+Some other interesting ways to show summary statistics
+```{r}
+ggplot(data=diamonds) +
+  stat_summary(
+    mapping = aes(x=cut, y=depth),
+    fun.ymin = min, # Set the minimum 
+    fun.ymax = max, # Set the maximum
+    fun.y = median # Set the median
+  )
+  
+```
+Exercises
+1. What is the default geom associated with stat_summary()? How could you rewrite the previous plot to use that geom function instead of the stat function?
+```{r}
+
+?stat_summary # Appears to be geom_pointrange()
+
+# lets try the geom_freqpoly?
+ggplot(data=diamonds) +
+  geom_pointrange(
+    mapping = aes(x=cut, y=depth),
+    stat = "summary", 
+    fun.min = min,
+    fun.max = max, 
+    fun = median 
+  )
+``` 
+2. What does geom_col() do? How is it different to geom_bar()?
